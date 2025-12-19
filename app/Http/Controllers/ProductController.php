@@ -203,4 +203,11 @@ class ProductController extends Controller
         $image->delete();
         return redirect()->route('admin.products.images', $image->product_id)->with(['status' => 200, 'message' => 'Imagen eliminada correctamente', 'icon' => 'success']);
     }
+
+    public function show_web(Product $product)
+    {
+        $product = Product::findOrFail($product->id);
+        $settings = Ajuste::first();
+        return view('web.product.show', compact('product', 'settings'));
+    }
 }

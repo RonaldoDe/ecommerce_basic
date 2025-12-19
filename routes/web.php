@@ -50,3 +50,20 @@ Route::delete('/admin/products/image/{id}/remove_image', [App\Http\Controllers\P
 
 // WEB
 Route::get('/', [App\Http\Controllers\WebController::class, 'index'])->name('web.index');
+Route::get('/product/{product}', [App\Http\Controllers\ProductController::class, 'show_web'])->name('web.product.show');
+Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('web.dashboard');
+Route::get('/cart', [App\Http\Controllers\DashboardController::class, 'cart'])->name('web.cart');
+Route::get('/web/login', [App\Http\Controllers\DashboardController::class, 'login'])->name('web.login');
+Route::post('/web/login', [App\Http\Controllers\DashboardController::class, 'loginPost'])->name('web.login.post');
+Route::get('/web/register', [App\Http\Controllers\DashboardController::class, 'register'])->name('web.register');
+Route::post('/web/register', [App\Http\Controllers\DashboardController::class, 'registerPost'])->name('web.register.post');
+Route::get('/web/search', [App\Http\Controllers\WebController::class, 'search'])->name('web.search');
+
+
+Route::fallback(function () {
+    if (request()->is('admin/*') || request()->is('admin')) {
+        return response()->view('errors.404-admin', [], 200);
+    }
+
+    return response()->view('errors.404', [], 200);
+});
