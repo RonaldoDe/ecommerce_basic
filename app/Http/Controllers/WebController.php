@@ -10,6 +10,7 @@ class WebController extends Controller
 {
     public function index()
     {
+        // $favoriteProducts = auth()->user()->favoriteProducts;
         $settings = Ajuste::first();
         $products = Product::paginate(8);
         return view('web.index', compact('settings', 'products'));

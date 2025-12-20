@@ -59,6 +59,10 @@ Route::get('/web/register', [App\Http\Controllers\DashboardController::class, 'r
 Route::post('/web/register', [App\Http\Controllers\DashboardController::class, 'registerPost'])->name('web.register.post');
 Route::get('/web/search', [App\Http\Controllers\WebController::class, 'search'])->name('web.search');
 
+// Favoritos
+Route::get('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'index'])->name('web.favorites.index')->middleware('auth');
+Route::post('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'store'])->name('web.favorites.store')->middleware('auth');
+
 
 Route::fallback(function () {
     if (request()->is('admin/*') || request()->is('admin')) {

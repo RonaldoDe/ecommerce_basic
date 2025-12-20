@@ -157,9 +157,9 @@
                     <i class="bi bi-bag-check me-2"></i>
                     <span>Mis pedidos</span>
                   </a>
-                  <a class="dropdown-item d-flex align-items-center" href="account.html">
+                  <a class="dropdown-item d-flex align-items-center" href="{{route('web.favorites.index')}}">
                     <i class="bi bi-heart me-2"></i>
-                    <span>Mi lista de deseos</span>
+                    <span>Favoritos</span>
                   </a>
                   <a class="dropdown-item d-flex align-items-center" href="account.html">
                     <i class="bi bi-gear me-2"></i>
@@ -181,9 +181,16 @@
             </div>
 
             <!-- Wishlist -->
-            <a href="account.html" class="header-action-btn d-none d-md-block">
+            <a href="{{route('web.favorites.index')}}" class="header-action-btn d-none d-md-block">
               <i class="bi bi-heart"></i>
-              <span class="badge">0</span>
+              @php
+                if (Auth::check()) {
+                  $favoriteProducts = count(auth()->user()->favoriteProducts);
+                } else {
+                  $favoriteProducts = 0;
+                }
+              @endphp
+                <span class="badge">{{ $favoriteProducts }}</span>
             </a>
 
             <!-- Cart -->
@@ -983,5 +990,7 @@
     </script>
 @endif
 </body>
+
+</html>
 
 </html>

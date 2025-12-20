@@ -94,9 +94,13 @@
                         {{-- <div class="product-badge sale-badge">20% off</div> --}}
                         <img src="{{ asset('storage/' . ($product->images->first()?->image ?? 'products/default_ot_image.png')) }}" alt="Product Image" class="img-fluid" loading="lazy">
                         <div class="product-actions">
-                        <button class="action-btn wishlist-btn">
-                            <i class="bi bi-heart"></i>
-                        </button>
+                        <form action="{{route('web.favorites.store')}}" method="POST">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}" id="">
+                            <button type="submit" class="action-btn wishlist-btn">
+                              <i class="bi bi-heart"></i>
+                            </button>
+                        </form>
                         {{-- <button class="action-btn compare-btn">
                             <i class="bi bi-arrow-left-right"></i>
                         </button> --}}
