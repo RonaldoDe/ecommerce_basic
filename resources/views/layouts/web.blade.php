@@ -194,9 +194,16 @@
             </a>
 
             <!-- Cart -->
-            <a href="cart.html" class="header-action-btn">
+            <a href="{{route('web.cart')}}" class="header-action-btn">
               <i class="bi bi-cart3"></i>
-              <span class="badge">3</span>
+              @php
+                if (Auth::check()) {
+                  $cartProducts = count(auth()->user()->cart);
+                } else {
+                  $cartProducts = 0;
+                }
+              @endphp
+              <span class="badge">{{ $cartProducts }}</span>
             </a>
 
             <!-- Mobile Navigation Toggle -->
@@ -212,11 +219,11 @@
       <div class="container-fluid container-xl position-relative">
         <nav id="navmenu" class="navmenu">
           <ul>
-            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="{{ route('web.index') }}" class="active">Home</a></li>
             <li><a href="about.html">About</a></li>
             <li><a href="category.html">Category</a></li>
             <li><a href="product-details.html">Product Details</a></li>
-            <li><a href="cart.html">Cart</a></li>
+            <li><a href="{{ route('web.cart') }}">Cart</a></li>
             <li><a href="checkout.html">Checkout</a></li>
             <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
               <ul>

@@ -108,7 +108,12 @@
                             <i class="bi bi-zoom-in"></i>
                         </a>
                         </div>
-                        <button class="cart-btn">Agregar al carrito</button>
+                        <form action="{{route('web.cart.store')}}" method="POST">
+                          @csrf
+                          <input type="hidden" name="product_id" value="{{ $product->id }}" id="">
+                          <input type="hidden" name="quantity" value="1" id="">
+                          <button type="submit" class="cart-btn">Agregar al carrito</button>
+                        </form>
                     </div>
                     <div class="product-info">
                         <div class="product-category">{{ $product->name }}</div>

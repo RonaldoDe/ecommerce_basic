@@ -60,8 +60,17 @@ Route::post('/web/register', [App\Http\Controllers\DashboardController::class, '
 Route::get('/web/search', [App\Http\Controllers\WebController::class, 'search'])->name('web.search');
 
 // Favoritos
-Route::get('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'index'])->name('web.favorites.index')->middleware('auth');
-Route::post('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'store'])->name('web.favorites.store')->middleware('auth');
+Route::get('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'index'])->name('web.favorites.index');
+Route::post('/favorites', [App\Http\Controllers\FavoriteProductController::class, 'store'])->name('web.favorites.store');
+Route::delete('/favorites/{id}', [App\Http\Controllers\FavoriteProductController::class, 'destroy'])->name('web.favorites.destroy');
+
+// Carrito
+Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('web.cart');
+Route::post('/cart', [App\Http\Controllers\CartController::class, 'store'])->name('web.cart.store');
+Route::put('/cart/{id}', [App\Http\Controllers\CartController::class, 'update'])->name('web.cart.update');
+Route::delete('/cart/{id}', [App\Http\Controllers\CartController::class, 'destroy'])->name('web.cart.destroy');
+Route::post('/cart/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('web.cart.clear');
+
 
 
 Route::fallback(function () {

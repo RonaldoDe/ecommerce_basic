@@ -124,42 +124,45 @@
                     <div class="selected-variant">Selected: <span>Midnight Black</span></div>
                 </div>
                 </div> --}}
-
-                <!-- Purchase Options -->
-                <div class="purchase-section">
-                <div class="quantity-control">
-                    <label class="control-label">Cantidad:</label>
-                    <div class="quantity-input-group">
-                    <div class="quantity-selector">
-                        <button class="quantity-btn decrease" type="button">
-                        <i class="bi bi-dash"></i>
-                        </button>
-                        <input type="number" class="quantity-input" value="1" min="1" max="{{ $product->stock }}">
-                        <button class="quantity-btn increase" type="button">
-                        <i class="bi bi-plus"></i>
-                        </button>
-                    </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <a href="{{ route('web.cart') }}" class="btn primary-action">
-                    <i class="bi bi-bag-plus"></i>
-                    Agregar al carrito
-                    </a>
-                    <button class="btn secondary-action">
-                    <i class="bi bi-lightning"></i>
-                    Comprar ahora
-                    </button>
-                    <form action="{{route('web.favorites.store')}}" method="POST">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}" id="">
-                            <button type="submit" class="btn icon-action" title="Add to Wishlist">
-                                <i class="bi bi-heart"></i>
+                <form action="{{ route('web.cart.store') }}" method="POST">
+                    @csrf
+                    <!-- Purchase Options -->
+                    <div class="purchase-section">
+                    <div class="quantity-control">
+                        <label class="control-label">Cantidad:</label>
+                        <div class="quantity-input-group">
+                        <div class="quantity-selector">
+                            <button class="quantity-btn decrease" type="button">
+                            <i class="bi bi-dash"></i>
                             </button>
-                        </form>
-                </div>
-                </div>
+                            <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="{{ $product->stock }}">
+                            <button class="quantity-btn increase" type="button">
+                            <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <input type="hidden" name="product_id" value="{{ $product->id }}" id="">
+                            <button class="btn primary-action" type="submit">
+                        <i class="bi bi-bag-plus"></i>
+                        Agregar al carrito
+                        </button>
+                        <button class="btn secondary-action">
+                        <i class="bi bi-lightning"></i>
+                        Comprar ahora
+                        </button>
+                        <form action="{{route('web.favorites.store')}}" method="POST">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}" id="">
+                                <button type="submit" class="btn icon-action" title="Add to Wishlist">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </form>
+                    </div>
+                    </div>
+                </form>
 
                 <!-- Benefits List -->
                 <div class="benefits-list">

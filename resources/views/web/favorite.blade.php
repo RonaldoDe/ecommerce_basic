@@ -79,14 +79,14 @@
                                 <form action="{{ route('web.favorites.store') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $favoriteProduct->product->id }}">
-                                    <button class="btn-remove" type="submit" aria-label="Remove from wishlist">
+                                    <button class="btn-remove" aria-label="Remove from wishlist" onclick="confirmDelete(this.form)">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
                                 <div class="sale-badge">{{ $favoriteProduct->product->stock }} disponibles</div>
                             </div>
                             <div class="wishlist-content">
-                                <h4>{{ $favoriteProduct->product->name }}</h4>
+                                <a href="{{ route('web.product.show', $favoriteProduct->product->id) }}"><h4>{{ $favoriteProduct->product->name }}</h4></a>
                                 <div class="product-meta">
                                 <div class="rating">
                                     <i class="bi bi-star-fill"></i>
@@ -100,7 +100,12 @@
                                     <span class="current">{{ $settings->badge . $favoriteProduct->product->selling_price }}</span>
                                 </div>
                                 </div>
-                                <button type="button" class="btn-add-cart">Agregar al carrito</button>
+                                <form action="{{ route('web.cart.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $favoriteProduct->product->id }}">
+                                    <input type="hidden" name="quantity" value="1" id="">
+                                    <button type="submit"  class="btn-add-cart">Agregar al carrito</button>
+                                </form>
                             </div>
                         </div>
                     @endforeach
@@ -115,4 +120,20 @@
 
     </section><!-- /Account Section -->
 
+    <script>
+        function confirmDelete(form) {
+          event.preventDefault();
+            Swal.fire({
+                title: '¿Desea eliminar el registro?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
 @endsection
