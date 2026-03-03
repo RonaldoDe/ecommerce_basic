@@ -11,96 +11,115 @@ use Illuminate\Support\Facades\DB;
 
 class FavoriteProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         if (Auth::guest()) {
-            return redirect()->route('web.login')->with(['status' => 401, 'message' => 'Debes iniciar sesión para ver tus favoritos', 'icon' => 'warning']);
+            return redirect()->route('web.login')->with([
+                'status'  => 401,
+                'message' => 'Debes iniciar sesión para ver tus favoritos',
+                'icon'    => 'warning',
+            ]);
         }
-        $settings = Ajuste::first();
-        $favoriteProducts = FavoriteProduct::where('user_id', Auth::user()->id)->with('product.images')->get();
+
+        $settings         = Ajuste::first();
+        $favoriteProducts = FavoriteProduct::where('user_id', Auth::user()->id)
+                                           ->with('product.images')
+                                           ->get();
+
         return view('web.favorite', compact('favoriteProducts', 'settings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
         ]);
 
-
-        $favoriteProduct = FavoriteProduct::where('product_id', $request->product_id)->where('user_id', Auth::user()->id)->first();
-        try{
-            DB::beginTransaction();
-            if($favoriteProduct){
-                $favoriteProduct->delete();
-                DB::commit();
-                return redirect()->back()->with(['status' => 200, 'message' => 'Producto eliminado de favoritos', 'icon' => 'success']);
-            }
-            $favoriteProduct = new FavoriteProduct();
-            $favoriteProduct->product_id = $request->product_id;
-            $favoriteProduct->user_id = Auth::user()->id;
-            $favoriteProduct->save();
-            DB::commit();
-        }catch(Exception $e){
-            DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al agregar el producto a favoritos. ' . $e->getMessage(), 'icon' => 'error']);
+        if (Auth::guest()) {
+            return $this->respond(401, 'Debes iniciar sesión', 'warning', [
+                'added' => false,
+            ]);
         }
 
-        return redirect()->back()->with(['status' => 200, 'message' => 'Producto agregado a favoritos', 'icon' => 'success']);
+        $userId    = Auth::id();
+        $productId = $request->product_id;
+
+        try {
+            DB::beginTransaction();
+
+            $existing = FavoriteProduct::where('user_id', $userId)
+                                       ->where('product_id', $productId)
+                                       ->first();
+
+            if ($existing) {
+                // Toggle: quitar de favoritos
+                $existing->delete();
+                DB::commit();
+
+                $count = FavoriteProduct::where('user_id', $userId)->count();
+
+                return $this->respond(200, 'Producto eliminado de favoritos', 'info', [
+                    'status' => 'removed',
+                    'added'  => false,
+                    'count'  => $count,
+                ]);
+            }
+
+            // Toggle: agregar a favoritos
+            FavoriteProduct::create([
+                'product_id' => $productId,
+                'user_id'    => $userId,
+            ]);
+
+            DB::commit();
+
+            $count = FavoriteProduct::where('user_id', $userId)->count();
+
+            return $this->respond(200, 'Producto agregado a favoritos', 'success', [
+                'status' => 'added',
+                'added'  => true,
+                'count'  => $count,
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->respond(500, 'Error al actualizar favoritos.', 'error', [
+                'added' => false,
+            ]);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(FavoriteProduct $favoriteProduct)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(FavoriteProduct $favoriteProduct)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, FavoriteProduct $favoriteProduct)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(FavoriteProduct $favoriteProduct)
     {
-        try{
+        try {
             DB::beginTransaction();
             $favoriteProduct->delete();
             DB::commit();
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al eliminar el producto de favoritos. ' . $e->getMessage(), 'icon' => 'error']);
+            return $this->respond(500, 'Error al eliminar el producto de favoritos.', 'error');
         }
-        return redirect()->back()->with(['status' => 200, 'message' => 'Producto eliminado de favoritos', 'icon' => 'success']);
 
+        return $this->respond(200, 'Producto eliminado de favoritos', 'success');
+    }
+
+    // ─── Helper: responde JSON si es AJAX, redirect si no ───────────────────────
+
+    private function respond(int $status, string $message, string $icon, array $extra = [])
+    {
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json(array_merge([
+                'status'  => $status,
+                'success' => $status === 200,
+                'message' => $message,
+                'icon'    => $icon,
+            ], $extra), $status === 200 ? 200 : $status);
+        }
+
+        return redirect()->back()->with([
+            'status'  => $status,
+            'message' => $message,
+            'icon'    => $icon,
+        ]);
     }
 }

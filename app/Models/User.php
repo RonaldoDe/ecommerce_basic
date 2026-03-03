@@ -59,4 +59,73 @@ class User extends Authenticatable
     {
         return $this->hasMany(Cart::class);
     }
+    
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    /**
+     * Get the refunds requested by the user.
+     */
+    public function requestedRefunds()
+    {
+        return $this->hasMany(Refund::class, 'requested_by');
+    }
+
+    /**
+     * Get the refunds processed by the user (admin).
+     */
+    public function processedRefunds()
+    {
+        return $this->hasMany(Refund::class, 'processed_by');
+    }
+
+    /**
+     * Get the order status changes made by the user (admin).
+     */
+    public function orderStatusChanges()
+    {
+        return $this->hasMany(OrderStatusHistory::class, 'changed_by');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function reviewHelpfulness()
+    {
+        return $this->hasMany(ReviewHelpfulness::class);
+    }
+
+    /**
+     * Verificar si el usuario puede dejar una reseña para un producto
+     */
+    public function canReviewProduct($productId)
+    {
+        // Verificar si ya dejó una reseña
+        $hasReviewed = $this->reviews()
+            ->where('product_id', $productId)
+            ->exists();
+        
+        if ($hasReviewed) {
+            return false;
+        }
+        
+        // Verificar si compró el producto
+        $hasPurchased = $this->orders()
+            ->whereHas('items', function($query) use ($productId) {
+                $query->where('product_id', $productId);
+            })
+            ->where('status', 'delivered') // O el estado que consideres como entregado
+            ->exists();
+        
+        return $hasPurchased;
+    }
 }

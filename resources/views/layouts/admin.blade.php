@@ -3,11 +3,12 @@
 @endphp
 
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema Ecommerce</title>
     
     
@@ -82,48 +83,98 @@
                 </a>
             </li>
 
-            <li
-                class="sidebar-item {{ request()->routeIs('admin.roles*') ? 'active' : ''}}">
-                <a href="{{ route('admin.roles.index') }}" class='sidebar-link'>
-                    <i class="bi bi-shield-check"></i>
-                    <span>Roles</span>
-                </a>
-            </li>
+            @can('roles.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.roles*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.roles.index') }}" class='sidebar-link'>
+                        <i class="bi bi-shield-check"></i>
+                        <span>Roles</span>
+                    </a>
+                </li>
+            @endcan
 
-            <li
-                class="sidebar-item {{ request()->routeIs('admin.users*') ? 'active' : ''}}">
-                <a href="{{ route('admin.users.index') }}" class='sidebar-link'>
-                    <i class="bi bi-person-fill"></i>
-                    <span>Usuarios</span>
-                </a>
-            </li>
+            @can('users.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.users*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.users.index') }}" class='sidebar-link'>
+                        <i class="bi bi-person-fill"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+            @endcan
 
-            <li
-                class="sidebar-item {{ request()->routeIs('admin.categories*') ? 'active' : ''}}">
-                <a href="{{ route('admin.categories.index') }}" class='sidebar-link'>
-                    <i class="bi bi-tags"></i>
-                    <span>Categorias</span>
-                </a>
-            </li>
+            @can('categories.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.categories*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.categories.index') }}" class='sidebar-link'>
+                        <i class="bi bi-tags"></i>
+                        <span>Categorias</span>
+                    </a>
+                </li>
+            @endcan
 
-            <li
-                class="sidebar-item {{ request()->routeIs('admin.products*') ? 'active' : ''}}">
-                <a href="{{ route('admin.products.index') }}" class='sidebar-link'>
-                    <i class="bi bi-box-seam"></i>
-                    <span>Productos</span>
-                </a>
-            </li>
+            @can('products.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.products*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.products.index') }}" class='sidebar-link'>
+                        <i class="bi bi-box-seam"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('orders.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.orders*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.orders.index') }}" class='sidebar-link'>
+                        <i class="bi bi-cart"></i>
+                        <span>Ordenes</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('coupons.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.coupons*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.coupons.index') }}" class='sidebar-link'>
+                        <i class="bi bi-cash"></i>
+                        <span>Cupones</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('reviews.index')
+                <li
+                    class="sidebar-item  has-sub {{ request()->routeIs('admin.reviews*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.reviews.index') }}" class='sidebar-link'>
+                        <i class="bi bi-star"></i>
+                        <span>Reseñas</span>
+                    </a>
+                    
+                    <ul class="submenu ">
+                        
+                        <li class="submenu-item {{ request()->routeIs('admin.reviews*') ? 'active' : ''}}">
+                            <a href="{{ route('admin.reviews.index') }}" class="submenu-link">Listado</a>  
+                        </li>
+                        
+                    </ul>
+                    
+
+                </li>
+            @endcan
             
             
             <li class="sidebar-title">Ajustes</li>
 
-            <li
-                class="sidebar-item {{ request()->routeIs('admin.settings*') ? 'active' : ''}}">
-                <a href="{{ route('admin.settings.index') }}" class='sidebar-link'>
-                    <i class="bi bi-gear-fill"></i>
-                    <span>Configuración</span>
-                </a>
-            </li>
+            @can('settings.index')
+                <li
+                    class="sidebar-item {{ request()->routeIs('admin.settings*') ? 'active' : ''}}">
+                    <a href="{{ route('admin.settings.index') }}" class='sidebar-link'>
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Configuración</span>
+                    </a>
+                </li>
+            @endcan
 
             <li
                 class="sidebar-item  has-sub">
@@ -192,8 +243,8 @@
     
 <!-- Need: Apexcharts -->
 <script src="{{ url('/assets/extensions/apexcharts/apexcharts.min.js') }}"></script>
-<script src="{{ url('/assets/static/js/pages/dashboard.js') }}"></script>
-
+{{-- <script src="{{ url('/assets/static/js/pages/dashboard.js') }}"></script> --}}
+@stack('scripts')
 @if (Session::has('message') && Session::has('icon'))
     @php
         $status = Session::get('status');

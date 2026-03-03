@@ -6,139 +6,230 @@ use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Ajuste;
+use App\Models\Coupon;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Models\Product;
+use App\Models\ProductVariant;
 
 class CartController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         if (Auth::guest()) {
-            return redirect()->route('web.login')->with(['status' => 401, 'message' => 'Debes iniciar sesión para ver tus productos en el carrito', 'icon' => 'warning']);
+            return redirect()->route('web.login')->with([
+                'status'  => 401,
+                'message' => 'Debes iniciar sesión para ver tus productos en el carrito',
+                'icon'    => 'warning',
+            ]);
         }
         $settings = Ajuste::first();
-        $cart = Cart::where('user_id', Auth::user()->id)->with('product.images')->get();
+        $cart     = Cart::where('user_id', Auth::user()->id)->with('product.images')->get();
         return view('web.cart', compact('cart', 'settings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:1',
+            'variant_id' => 'nullable|exists:product_variants,id',
+            'quantity'   => 'required|numeric|min:1',
         ]);
 
+        $product   = Product::findOrFail($request->product_id);
+        $variantId = $request->variant_id ?: null;
 
-        $cart = Cart::where('product_id', $request->product_id)->where('user_id', Auth::user()->id)->first();
-        try{
-            DB::beginTransaction();
-            if($cart){
-                $cart->quantity += $request->quantity;
-                $cart->save();
-                DB::commit();
-
-                return redirect()->back()->with(['status' => 200, 'message' => 'Producto agregado al carrito', 'icon' => 'success']);
-            }
-            $cart = new Cart();
-            $cart->product_id = $request->product_id;
-            $cart->user_id = Auth::user()->id;
-            $cart->quantity = $request->quantity;
-            $cart->save();
-            DB::commit();
-        }catch(Exception $e){
-            DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al agregar el producto al carrito. ' . $e->getMessage(), 'icon' => 'error']);
+        // Verificar stock
+        if ($variantId) {
+            $variant         = ProductVariant::findOrFail($variantId);
+            $stockDisponible = $variant->stock;
+        } else {
+            $stockDisponible = $product->stock;
         }
 
-        return redirect()->back()->with(['status' => 200, 'message' => 'Producto agregado al carrito', 'icon' => 'success']);
+        if ($request->quantity > $stockDisponible) {
+            return $this->respond(422, 'No hay suficiente stock disponible.', 'warning');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $cart = Cart::where('user_id', Auth::id())
+                        ->where('product_id', $request->product_id)
+                        ->where('variant_id', $variantId)
+                        ->first();
+
+            if ($cart) {
+                if (($cart->quantity + $request->quantity) > $stockDisponible) {
+                    DB::rollBack();
+                    return $this->respond(
+                        422,
+                        'Ya tienes ' . $cart->quantity . ' en el carrito y no hay suficiente stock.',
+                        'warning'
+                    );
+                }
+                $cart->quantity += $request->quantity;
+                $cart->save();
+            } else {
+                $cart             = new Cart();
+                $cart->user_id    = Auth::id();
+                $cart->product_id = $request->product_id;
+                $cart->variant_id = $variantId;
+                $cart->quantity   = $request->quantity;
+                $cart->save();
+            }
+
+            DB::commit();
+
+            // Contar items totales en el carrito para actualizar el badge
+            $cartCount = Cart::where('user_id', Auth::id())->count();
+
+            return $this->respond(200, 'Producto agregado al carrito', 'success', [
+                'count'   => $cartCount,
+                'success' => true,
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->respond(500, 'Error al agregar el producto al carrito.', 'error');
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
             'quantity' => 'required|numeric|min:1',
         ]);
 
-        try{
+        try {
             DB::beginTransaction();
+
             $cart = Cart::find($id);
-            if(!$cart){
+            if (!$cart) {
                 DB::rollBack();
-                return redirect()->back()->with(['status' => 404, 'message' => 'Producto no encontrado', 'icon' => 'error']);
+                return $this->respond(404, 'Producto no encontrado', 'error');
             }
-            if($cart->product->stock < $request->quantity){
+
+            // Verificar stock (variante o producto)
+            $stock = $cart->variant
+                ? $cart->variant->stock
+                : $cart->product->stock;
+
+            if ($stock < $request->quantity) {
                 DB::rollBack();
-                return redirect()->back()->with(['status' => 400, 'message' => 'No hay suficiente stock', 'icon' => 'error']);
+                return $this->respond(400, 'No hay suficiente stock', 'error');
             }
+
             $cart->quantity = $request->quantity;
             $cart->save();
+
             DB::commit();
-            return redirect()->back()->with(['status' => 200, 'message' => 'Cantidad actualizada', 'icon' => 'success']);
-        }catch(Exception $e){
+            return $this->respond(200, 'Cantidad actualizada', 'success');
+
+        } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al actualizar la cantidad del producto. ' . $e->getMessage(), 'icon' => 'error']);
+            return $this->respond(500, 'Error al actualizar la cantidad. ' . $e->getMessage(), 'error');
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        try{
+        try {
             DB::beginTransaction();
             $cart = Cart::find($id);
+            if (!$cart) {
+                return $this->respond(404, 'Producto no encontrado en el carrito', 'error');
+            }
             $cart->delete();
             DB::commit();
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al eliminar el producto del carrito. ' . $e->getMessage(), 'icon' => 'error']);
+            return $this->respond(500, 'Error al eliminar el producto del carrito. ' . $e->getMessage(), 'error');
         }
-        return redirect()->back()->with(['status' => 200, 'message' => 'Producto eliminado del carrito', 'icon' => 'success']);
+
+        return $this->respond(200, 'Producto eliminado del carrito', 'success');
     }
 
-    public function clear(){
-        try{
+    public function clear()
+    {
+        try {
             DB::beginTransaction();
             Cart::where('user_id', Auth::user()->id)->delete();
             DB::commit();
-            return redirect()->back()->with(['status' => 200, 'message' => 'Carrito limpio', 'icon' => 'success']);
-        }catch(Exception $e){
+            return $this->respond(200, 'Carrito limpio', 'success');
+        } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['status' => 500, 'message' => 'Error al limpiar el carrito. ' . $e->getMessage(), 'icon' => 'error']);
+            return $this->respond(500, 'Error al limpiar el carrito. ' . $e->getMessage(), 'error');
         }
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'coupon_code' => 'required|string|max:50',
+        ]);
+
+        $couponCode = strtoupper(trim($request->coupon_code));
+        $coupon     = Coupon::where('code', $couponCode)->valid()->first();
+
+        if (!$coupon || !$coupon->isValid()) {
+            return redirect()->back()->withErrors([
+                'coupon_code' => 'Cupón inválido, expirado o sin usos disponibles',
+            ])->withInput();
+        }
+
+        $cart     = Cart::where('user_id', Auth::id())->with('product')->get();
+        $subtotal = $cart->sum(fn($item) => $item->product->selling_price * $item->quantity);
+        $discount = $coupon->calculateDiscount($subtotal);
+
+        if ($discount == 0) {
+            $minPurchase = $coupon->min_purchase ? '$' . number_format($coupon->min_purchase, 2) : '';
+            return redirect()->back()->withErrors([
+                'coupon_code' => "Este cupón requiere una compra mínima de {$minPurchase}",
+            ])->withInput();
+        }
+
+        session([
+            'coupon_code'     => $couponCode,
+            'coupon_id'       => $coupon->id,
+            'discount_amount' => $discount,
+        ]);
+
+        return redirect()->back()->with([
+            'status'  => 200,
+            'message' => 'Cupón aplicado. Descuento: $' . number_format($discount, 2),
+            'icon'    => 'success',
+        ]);
+    }
+
+    public function removeCoupon()
+    {
+        session()->forget(['coupon_code', 'coupon_id', 'discount_amount']);
+
+        return redirect()->back()->with([
+            'status'  => 200,
+            'message' => 'Cupón eliminado',
+            'icon'    => 'info',
+        ]);
+    }
+
+    // ─── Helper: responde JSON si es AJAX, redirect si no ───────────────────────
+
+    private function respond(int $status, string $message, string $icon, array $extra = [])
+    {
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json(array_merge([
+                'status'  => $status,
+                'success' => $status === 200,
+                'message' => $message,
+                'icon'    => $icon,
+            ], $extra), $status === 200 ? 200 : $status);
+        }
+
+        $with = ['status' => $status, 'message' => $message, 'icon' => $icon];
+
+        return $status === 200
+            ? redirect()->back()->with($with)
+            : redirect()->back()->with($with);
     }
 }
