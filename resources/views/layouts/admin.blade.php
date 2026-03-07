@@ -163,6 +163,28 @@
                 </li>
             @endcan
             
+            <li class="sidebar-title">Páginas</li>
+
+            <li class="sidebar-item has-sub {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                <a href="#" class="sidebar-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Contenido</span>
+                </a>
+                <ul class="submenu {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                    <li class="submenu-item {{ request()->routeIs('admin.pages.about*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.pages.about.edit') }}" class="submenu-link">
+                            <i class="bi bi-building me-1"></i> Nosotros
+                        </a>
+                    </li>
+                    {{-- Aquí puedes agregar más páginas en el futuro:
+                    <li class="submenu-item {{ request()->routeIs('admin.pages.contact*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.pages.contact.edit') }}" class="submenu-link">
+                            <i class="bi bi-envelope me-1"></i> Contacto
+                        </a>
+                    </li>
+                    --}}
+                </ul>
+            </li>
             
             <li class="sidebar-title">Ajustes</li>
 

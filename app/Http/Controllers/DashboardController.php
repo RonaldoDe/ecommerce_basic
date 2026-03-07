@@ -85,11 +85,10 @@ class DashboardController extends Controller
     public function reviews()
     {
         $settings = $this->getSettings();
-        $user = Auth::user();
+        $user = User::find(Auth::id());
         
         // Cargar reviews del usuario
-        // $reviews = $user->reviews()->paginate(10);
-        $reviews = []; // Temporal
+        $reviews = $user->reviews()->paginate(10);
         
         return view('web.dashboard.reviews', compact('settings', 'reviews', 'user'));
     }
@@ -119,7 +118,9 @@ class DashboardController extends Controller
         if (!Auth::check()) {
             return redirect()->route('web.login');
         }
+
         $settings = $this->getSettings();
+
         return view('web.cart', compact('settings'));
     }
 

@@ -52,7 +52,7 @@ class PaypalController extends Controller
 
         // Calcular subtotal desde el carrito (verificación de seguridad)
         $calculatedSubtotal = $cart->sum(function($item) {
-            return $item->product->selling_price * $item->quantity;
+            return ($item->variant?->price ?? $item->product->selling_price) * $item->quantity;
         });
 
         // Obtener descuento y cupón de sesión o del request

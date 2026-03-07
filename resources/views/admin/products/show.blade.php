@@ -277,6 +277,17 @@
                                     <i class="bi bi-sparkle"></i> Nuevo
                                 </span>
                             @endif
+
+                            @if($product->best_seller)
+                                <span class="badge text-dark mb-1" style="background-color: #FFD700;">
+                                    <i class="bi bi-trophy-fill"></i>
+                                    @switch($product->best_seller)
+                                        @case(1) Posición #1 — Hero Principal @break
+                                        @case(2) Posición #2 — Mini Card @break
+                                        @case(3) Posición #3 — Mini Card @break
+                                    @endswitch
+                                </span>
+                            @endif
                         </div>
                     </div>
 

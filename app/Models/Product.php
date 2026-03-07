@@ -51,6 +51,7 @@ class Product extends Model
         'featured',
         'is_new',
         'visibility',
+        'best_seller',
         
         // Ratings
         'rating',
@@ -88,6 +89,7 @@ class Product extends Model
         'status' => 'boolean',
         'featured' => 'boolean',
         'is_new' => 'boolean',
+        'best_seller' => 'integer',
         'manage_stock' => 'boolean',
         'has_variants' => 'boolean',
         'discount_start_date' => 'datetime',
@@ -164,6 +166,8 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariant::class)->where('status', true)->orderBy('order');
     }
+
+    
 
     // Si tiene variantes, el stock total es la suma de las variantes
     public function getTotalStockAttribute(): int
@@ -287,6 +291,12 @@ class Product extends Model
     {
         return $query->where('status', true)
                     ->where('visibility', 'public');
+    }
+
+    public function scopeBestSellers($query)
+    {
+        return $query->whereNotNull('best_seller')
+                     ->orderBy('best_seller');
     }
 
     /**

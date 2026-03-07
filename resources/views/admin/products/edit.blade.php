@@ -369,6 +369,25 @@
                                     </div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Posición Best Seller</label>
+                                    <select name="best_seller" class="form-select">
+                                        <option value="">— No destacar —</option>
+                                        <option value="1" @selected(old('best_seller', $product->best_seller ?? '') == 1)>
+                                            ⭐ Posición 1 — Tarjeta principal (con badge)
+                                        </option>
+                                        <option value="2" @selected(old('best_seller', $product->best_seller ?? '') == 2)>
+                                            Posición 2 — Mini card izquierda
+                                        </option>
+                                        <option value="3" @selected(old('best_seller', $product->best_seller ?? '') == 3)>
+                                            Posición 3 — Mini card derecha
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        Solo un producto puede ocupar cada posición. Asignar a otro desplazará al actual.
+                                    </small>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">

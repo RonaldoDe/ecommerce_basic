@@ -78,6 +78,17 @@
         </a>
     </div>
     @endforelse
+    @if($reviews->hasPages())
+        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+            <p class="rv-pag-info">
+                Mostrando {{ $reviews->firstItem() }}–{{ $reviews->lastItem() }}
+                de {{ $reviews->total() }} reseñas
+            </p>
+            <div class="rv-pag">
+                {{ $reviews->links('pagination::bootstrap-4') }}
+            </div>
+        </div>
+    @endif
 </div>
 
 <style>

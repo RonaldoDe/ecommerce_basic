@@ -225,7 +225,7 @@
                                                     ? asset('storage/' . $item['variant_image'])
                                                     : (!empty($item['image'])
                                                         ? asset('storage/' . $item['image'])
-                                                        : asset('assets/img/no-image.png'));
+                                                        : asset('storage/products/default_ot_image.png'));
                                                 $isVariantImg = !empty($item['variant_image']);
                                             @endphp
                                             <img src="{{ $imgSrc }}"

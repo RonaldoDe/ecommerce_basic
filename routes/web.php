@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
@@ -160,6 +161,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.redirect'])->group(fun
     
 });
 
+Route::prefix('admin')->name('admin.pages.')->middleware(['auth.redirect'])->group(function () {
+    
+    // Nosotros
+    Route::get ('about',         [AboutController::class, 'edit'])   ->name('about.edit');
+    Route::put ('about',         [AboutController::class, 'update']) ->name('about.update');
+
+    // Equipo (miembros)
+    Route::post  ('about/members',         [AboutController::class, 'storeMember'])   ->name('about.members.store');
+    Route::put   ('about/members/{member}',[AboutController::class, 'updateMember'])  ->name('about.members.update');
+    Route::delete('about/members/{member}',[AboutController::class, 'destroyMember']) ->name('about.members.destroy');
+    
+});
+
 // WEB
 Route::get('/', [App\Http\Controllers\WebController::class, 'index'])->name('web.index');
 Route::get('/product/{product}', [App\Http\Controllers\ProductController::class, 'show_web'])->name('web.product.show');
@@ -169,6 +183,9 @@ Route::post('/web/login', [App\Http\Controllers\DashboardController::class, 'log
 Route::get('/web/register', [App\Http\Controllers\DashboardController::class, 'register'])->name('web.register');
 Route::post('/web/register', [App\Http\Controllers\DashboardController::class, 'registerPost'])->name('web.register.post');
 Route::get('/web/search', [App\Http\Controllers\WebController::class, 'search'])->name('web.search');
+Route::get('web/categorias', [App\Http\Controllers\WebController::class, 'categories'])->name('web.categories');
+Route::get('web/categorias/{id}', [App\Http\Controllers\WebController::class, 'category'])->name('web.category');
+Route::get('web/nosotros', [AboutController::class, 'index'])->name('web.about');
 
 // DASHBOARD - Protegido con middleware auth
 Route::prefix('web')->name('web.')->middleware(['auth.redirect'])->group(function () {

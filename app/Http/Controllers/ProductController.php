@@ -188,6 +188,15 @@ class ProductController extends Controller
             
             // Publicación
             $product->published_at = $request->published_at ?? now();
+
+            // Best Seller — liberar posición si ya la ocupa otro producto
+            if ($request->best_seller) {
+                Product::where('best_seller', $request->best_seller)
+                    ->update(['best_seller' => null]);
+                $product->best_seller = $request->best_seller;
+            } else {
+                $product->best_seller = null;
+            }
             
             $product->save();
 
@@ -362,6 +371,16 @@ class ProductController extends Controller
             if ($request->published_at) {
                 $product->published_at = $request->published_at;
             }
+
+            // Best Seller — liberar posición si ya la ocupa otro producto
+            if ($request->best_seller) {
+                Product::where('best_seller', $request->best_seller)
+                    ->where('id', '!=', $product->id)
+                    ->update(['best_seller' => null]);
+                $product->best_seller = $request->best_seller;
+            } else {
+                $product->best_seller = null;
+            }
             
             $product->save();
 
@@ -517,6 +536,7 @@ class ProductController extends Controller
             ->get();
 
         $settings = Ajuste::first();
+
 
         return view('web.product.show', compact('product', 'relatedProducts', 'settings'));
     }

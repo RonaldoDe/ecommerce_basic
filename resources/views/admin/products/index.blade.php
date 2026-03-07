@@ -112,17 +112,11 @@
                                     <tr>
                                         <td class="text-center">{{ $nro++ }}</td>
                                         <td>
-                                            @if($product->images->count() > 0)
-                                                <img src="{{ asset('storage/' . ($product->images->first()?->image ?? 'products/default_ot_image.png')) }}" 
+                                            <img src="{{ asset('storage/' . ($product->images->first()?->image ?? 'products/default_ot_image.png')) }}" 
                                                     alt="{{ $product->name }}" 
                                                     class="img-thumbnail" 
                                                     style="width: 60px; height: 60px; object-fit: cover;">
-                                            @else
-                                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
-                                                    style="width: 60px; height: 60px;">
-                                                    <i class="bi bi-image"></i>
-                                                </div>
-                                            @endif
+                                            
                                         </td>
                                         <td>
                                             <strong>{{ $product->name }}</strong><br>
@@ -141,6 +135,13 @@
                                             @if($product->is_on_sale)
                                                 <span class="badge bg-danger">
                                                     <i class="bi bi-tag-fill"></i> {{ $product->discount_percentage }}% OFF
+                                                </span>
+                                            @endif
+
+                                            @if($product->best_seller)
+                                                <span class="badge text-dark" style="background-color: #FFD700;">
+                                                    <i class="bi bi-trophy-fill"></i>
+                                                    {{ $product->best_seller == 1 ? 'Best Seller #1' : 'Best Seller #' . $product->best_seller }}
                                                 </span>
                                             @endif
                                         </td>

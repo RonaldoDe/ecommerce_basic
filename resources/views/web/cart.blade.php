@@ -18,6 +18,8 @@
 <section id="cart" class="cart section">
   <div class="container" data-aos="fade-up" data-aos-delay="100">
 
+    @php $cart = auth()->user()->cart; @endphp
+
     @if($cart->count() === 0)
 
       {{-- ── Carrito vacío ────────────────────────────────── --}}

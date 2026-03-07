@@ -83,6 +83,6 @@ class OrderItem extends Model
         $firstImage = $this->product?->images?->first();
         return $firstImage
             ? asset('storage/' . $firstImage->image)
-            : asset('images/no-image.png');
+            : asset('storage/products/default_ot_image.png');
     }
 }
